@@ -1,0 +1,245 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101722">
+  <meta name="description" content="محاسبه ارزش کل دارایی‌ها و تحلیل تخصیص پرتفوی در RichMe">
+  <title>RichMe | محاسبه‌گر پرتفوی</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">R</span>
+      <div>
+        <h1>RichMe</h1>
+        <p>Financial Calculators</p>
+      </div>
+    </div>
+    <span class="status">نسخه اولیه · ورود دستی اطلاعات</span>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">PORTFOLIO MANAGEMENT</p>
+      <h2>محاسبه‌گر پرتفوی و ارزش کل دارایی‌ها</h2>
+      <p class="description">
+        دارایی‌های خود را ثبت کن، ارزش کل را محاسبه کن و ترکیب پرتفوی را بررسی کن.
+      </p>
+    </section>
+
+    <section class="panel settings">
+      <div class="section-heading">
+        <div>
+          <h3>تنظیمات گزارش</h3>
+          <p>واحد مرجع محاسبه را انتخاب کن.</p>
+        </div>
+      </div>
+
+      <div class="form-grid settings-grid">
+        <label>
+          واحد پول گزارش
+          <select id="reportCurrency">
+            <option value="IRR">ریال ایران (IRR)</option>
+            <option value="IRT">تومان ایران (IRT)</option>
+            <option value="USD">دلار آمریکا (USD)</option>
+            <option value="EUR">یورو (EUR)</option>
+            <option value="GBP">پوند (GBP)</option>
+            <option value="AED">درهم (AED)</option>
+            <option value="USDT">تتر (USDT)</option>
+            <option value="OTHER">واحد سفارشی</option>
+          </select>
+        </label>
+        <label id="customCurrencyWrap" hidden>
+          کد واحد سفارشی
+          <input id="customCurrency" maxlength="10" placeholder="مثلاً TRY">
+        </label>
+        <label>
+          نمایش دارایی‌ها
+          <select id="marketFilter">
+            <option value="all">تمام بازارها</option>
+            <option value="iran">بازار ایران</option>
+            <option value="global">بازار جهانی</option>
+          </select>
+        </label>
+      </div>
+      <p class="hint">
+        نرخ تبدیل باید برابر ارزش یک واحد از ارز دارایی برحسب واحد پول گزارش باشد.
+        برای مثال، اگر گزارش برحسب دلار است، نرخ تبدیل ریال به دلار را به‌صورت
+        ارزش هر ریال برحسب دلار وارد کن.
+      </p>
+    </section>
+
+    <section class="summary-grid" aria-label="خلاصه پرتفوی">
+      <article class="metric">
+        <span>ارزش کل دارایی‌های نمایش‌داده‌شده</span>
+        <strong id="totalValue">۰</strong>
+        <small id="totalCurrency">IRR</small>
+      </article>
+      <article class="metric">
+        <span>تعداد دارایی‌ها</span>
+        <strong id="assetCount">۰</strong>
+        <small>بر اساس فیلتر انتخاب‌شده</small>
+      </article>
+      <article class="metric">
+        <span>بزرگ‌ترین گروه دارایی</span>
+        <strong id="largestGroup">—</strong>
+        <small id="largestGroupShare">هنوز اطلاعاتی ثبت نشده</small>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h3 id="formTitle">ثبت دارایی جدید</h3>
+          <p>قیمت و نرخ ارز را مطابق اطلاعات موردنظر خود وارد کن.</p>
+        </div>
+      </div>
+
+      <form id="assetForm">
+        <input type="hidden" id="editId">
+
+        <div class="form-grid">
+          <label>
+            نام دارایی
+            <input id="assetName" required maxlength="100"
+                   placeholder="مثلاً صندوق طلا">
+          </label>
+
+          <label>
+            گروه دارایی
+            <select id="assetGroup" required>
+              <option value="cash">وجه نقد و سپرده</option>
+              <option value="stocks">سهام و صندوق‌ها</option>
+              <option value="gold">طلا و فلزات گران‌بها</option>
+              <option value="currency">ارز</option>
+              <option value="crypto">رمزارز</option>
+              <option value="fixed">درآمد ثابت</option>
+              <option value="other">سایر دارایی‌ها</option>
+            </select>
+          </label>
+
+          <label>
+            بازار
+            <select id="assetMarket" required>
+              <option value="iran">ایران</option>
+              <option value="global">جهانی</option>
+            </select>
+          </label>
+
+          <label>
+            تعداد یا مقدار
+            <input id="assetQuantity" type="number" min="0.00000001"
+                   step="any" required placeholder="مثلاً 10">
+          </label>
+
+          <label>
+            قیمت هر واحد
+            <input id="assetPrice" type="number" min="0"
+                   step="any" required placeholder="مثلاً 250000">
+          </label>
+
+          <label>
+            ارز قیمت
+            <select id="assetCurrency" required>
+              <option value="IRR">IRR</option>
+              <option value="IRT">IRT</option>
+              <option value="USD">USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="AED">AED</option>
+              <option value="USDT">USDT</option>
+              <option value="OTHER">سایر</option>
+            </select>
+          </label>
+
+          <label id="assetCustomCurrencyWrap" hidden>
+            کد ارز دارایی
+            <input id="assetCustomCurrency" maxlength="10" placeholder="مثلاً TRY">
+          </label>
+
+          <label>
+            نرخ تبدیل به ارز گزارش
+            <input id="assetFx" type="number" min="0.0000000001"
+                   step="any" placeholder="برای ارز متفاوت الزامی است">
+          </label>
+
+          <label class="full-width">
+            یادداشت (اختیاری)
+            <input id="assetNotes" maxlength="250"
+                   placeholder="توضیحات تکمیلی">
+          </label>
+        </div>
+
+        <p class="hint">
+          اگر ارز قیمت و ارز گزارش یکسان باشند، نرخ تبدیل ۱ در نظر گرفته می‌شود.
+          در غیر این صورت، نرخ تبدیل را وارد کن.
+        </p>
+
+        <div class="form-actions">
+          <button type="submit" class="primary" id="submitButton">افزودن دارایی</button>
+          <button type="button" class="secondary" id="cancelEdit" hidden>لغو ویرایش</button>
+          <button type="reset" class="secondary">پاک‌کردن فرم</button>
+        </div>
+        <p id="formMessage" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading section-heading-row">
+        <div>
+          <h3>فهرست دارایی‌ها</h3>
+          <p>ارزش‌ها بر مبنای ارز گزارش محاسبه می‌شوند.</p>
+        </div>
+        <button id="exportCsv" class="secondary" type="button">خروجی CSV</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>دارایی</th>
+              <th>گروه</th>
+              <th>بازار</th>
+              <th>مقدار</th>
+              <th>قیمت واحد</th>
+              <th>ارزش در ارز گزارش</th>
+              <th>سهم از پرتفوی</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody id="assetTableBody">
+            <tr>
+              <td colspan="8" class="empty">هنوز دارایی‌ای ثبت نشده است.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="hint">
+        اطلاعات این نسخه فقط در حافظه صفحه نگهداری می‌شود و با بارگذاری مجدد صفحه
+        از بین می‌رود. پیش از بستن صفحه، در صورت نیاز خروجی CSV بگیر.
+      </p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <h3>ترکیب پرتفوی</h3>
+          <p>نمایش سهم گروه‌های دارایی از مجموع دارایی‌های فیلترشده.</p>
+        </div>
+      </div>
+      <div id="allocationChart" class="chart" aria-label="نمودار ترکیب پرتفوی"></div>
+      <div id="allocationLegend" class="legend"></div>
+    </section>
+
+    <footer>
+      <p>RichMe Financial Calculators</p>
+      <p>این ابزار برای محاسبه و سازمان‌دهی اطلاعات واردشده توسط کاربر است؛
+      قیمت زنده یا توصیه سرمایه‌گذاری ارائه نمی‌کند.</p>
+    </footer>
+  </main>
+</body>
+</html>
